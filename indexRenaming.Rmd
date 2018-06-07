@@ -1,0 +1,83 @@
+---
+title: "Renaming files with a dictionary"
+author: "EPermina"
+date: "7 June 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## How to rename a heap of files with one tidy script
+
+Suppose you have a lot of files and you want to change something in each file name. If you want the same change done to all of them, it is realtively easy, for example, change file extention from .txt to .tab:
+
+```{bash, eval=FALSE, echo=TRUE}
+for file in *.txt
+do
+  mv "$file"" "${file/.txt/.tab}"
+done
+```
+
+where "for" starts the loop, "*.txt" specifies all files in the directory that have names like mike.txt, log.txt, etc, "mv" changes an old name for a new name, "do" and "done" mark the repeated action
+
+Now, how to remove all the pesky white spaces, essentially the same thing:
+```{bash, eval=FALSE, echo=TRUE}
+IFS="\n"
+for file in *.txt;
+do
+    mv "$file" "${file//[[:space:]]}"
+done
+```
+
+Now, if your situation is a little be more complicated, namely, you have tons of files and an index file, that corresponds part of the name you want to change with a thing you want to change it for (say, swipe a barcode sequence in the file name for aa sample name it belongs to), you can use this neat little script, that I found in the depth of stackoverflow, credits belong to @eduard-i
+
+
+
+```{bash, eval=FALSE, echo=TRUE}
+#!/bin/bash
+while IFS='' read -r line || [[ -n "$line" ]]; do
+        NR=$(echo "$line" | cut -f 2)
+        NAME=$(echo "$line" | cut -f 1)
+        if [ -f "FlowcellNum_R1_${NR}.fastq" ] ; then
+                mv "FlowcellNum_R1_${NR}.fastq" "FlowcellNum_R1_${NAME}.fastq"
+        fi
+done < indexfile
+```
+
+where 
+```{bash, eval=FALSE, echo=TRUE}
+while IFS='' read -r line || [[ -n "$line" ]]; 
+```
+
+reads the index file,
+
+```{bash, eval=FALSE, echo=TRUE}
+NR=$(echo "$line" | cut -f 2)  
+```
+
+reads the barcode (the part of the file name I want to change is in the second column of my index correspondence file)
+```{bash, eval=FALSE, echo=TRUE}
+NAME=$(echo "$line" | cut -f 1)
+```
+ reads the corresponding sample name, which is in my first column of index correspondence file
+```{bash, eval=FALSE, echo=TRUE}
+if [ -f "FlowcellNum_R1_${NR}.fastq" ] ; then
+
+```
+ checks if the file name fits the pattern of names I want to change, 
+and 
+```{bash, eval=FALSE, echo=TRUE}
+mv "FlowcellNum_R1_${NR}.fastq" "FlowcellNum_R1_${NAME}.fastq"
+```
+
+renames the file.
+
+my barcode correspondence (indexfile) looks like this:
+
+Sample01	ACAAGCTA
+Sample02	AAACATCG
+...
+
+and files are renamed from FlowcellNum_R1_ACAAGCTA.fastq to FlowcellNum_R1_Sample1.fastq respectively
