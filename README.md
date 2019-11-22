@@ -3,7 +3,7 @@
 ... is basically acollection of tips and trick on dealing with data in the .nix-compatible environment (Macs inluded)
 
 
-I use Markdown to generate my text+code content
+
 
 ```markdown
 
